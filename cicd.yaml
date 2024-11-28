@@ -1,0 +1,38 @@
+#!/bin/bash
+
+# Define variables
+APP_NAME="fastapi-app"
+IMAGE_TAG="latest"
+DOCKER_HUB_USER="your-dockerhub-username"
+DOCKER_REPO="$DOCKER_HUB_USER/$APP_NAME"
+K8S_DEPLOYMENT_YAML="k8s/deployment.yaml"
+K8S_SERVICE_YAML="k8s/service.yaml"
+
+# Step 1: Dockerize the FastAPI app (build Docker image)
+echo "Building Docker image..."
+docker build -t $DOCKER_REPO:$IMAGE_TAG .
+
+# Step 2: Login to Docker Hub (or any other container registry you're using)
+echo "Logging in to Docker Hub..."
+docker login -u $DOCKER_HUB_USER
+
+# Step 3: Push the Docker image to Docker Hub
+echo "Pushing Docker image to Docker Hub..."
+docker push $DOCKER_REPO:$IMAGE_TAG
+
+# Step 4: Apply Kubernetes Deployment and Service
+echo "Applying Kubernetes Deployment and Service..."
+
+# Ensure the image is updated in the deployment.yaml (optional, but recommended)
+sed -i "s|image:.*|image: $DOCKER_REPO:$IMAGE_TAG|" $K8S_DEPLOYMENT_YAML
+
+# Apply the deployment and service
+kubectl apply -f $K8S_DEPLOYMENT_YAML
+kubectl apply -f $K8S_SERVICE_YAML
+
+# Step 5: Check the status of the deployment and service
+echo "Checking the status of the Kubernetes deployment..."
+kubectl get pods
+kubectl get svc
+
+echo "Deployment completed successfully!"

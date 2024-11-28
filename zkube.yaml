@@ -1,0 +1,41 @@
+# k8s/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fastapi-deployment
+spec:
+  replicas: 1  # You can change this to scale your application
+  selector:
+    matchLabels:
+      app: fastapi
+  template:
+    metadata:
+      labels:
+        app: fastapi
+    spec:
+      containers:
+        - name: fastapi-container
+          image: fastapi-app:latest  # This should match the image you built or pushed to a registry
+          ports:
+            - containerPort: 8000
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fastapi-service
+spec:
+  selector:
+    app: fastapi
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
+  type: LoadBalancer  # Or 'ClusterIP' or 'NodePort' depending on your environment
+
+
+# Apply the deployment configuration
+# kubectl apply -f k8s/deployment.yaml
+# kubectl port-forward svc/fastapi-service 8000:80 -->> expose port if not on loadbalancer(aws,gcp etc)
+# kubectl get pods
+# kubectl get svc
